@@ -1,8 +1,5 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
-
-// Import google-auth-library and sheets API
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { google } = require("googleapis");
+import { google } from "googleapis";
 
 const GOOGLE_SHEET_ID = "13UQuqN9mfMrjepQPyPCaN2AW6FKzh1b73k3nlhpSI7o";
 const SHEET_NAME = "Sheet1"; // Change this to your sheet name
