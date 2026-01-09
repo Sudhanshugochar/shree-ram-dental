@@ -1,11 +1,13 @@
 import { motion, useInView } from "framer-motion";
 import { useRef, useState } from "react";
-import { Calendar, User, Phone, Mail, MessageSquare, CheckCircle } from "lucide-react";
+import { Calendar, User, Phone, Mail, MessageSquare, CheckCircle, AlertCircle } from "lucide-react";
 
 const AppointmentSection = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -14,12 +16,43 @@ const AppointmentSection = () => {
     message: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate form submission
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 3000);
-    setFormData({ name: "", phone: "", email: "", date: "", message: "" });
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Submit to the API route
+      const response = await fetch("/api/submitAppointment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Failed to submit appointment");
+        setLoading(false);
+        return;
+      }
+
+      // Success
+      setSubmitted(true);
+      setFormData({ name: "", phone: "", email: "", date: "", message: "" });
+      
+      // Reset success message after 3 seconds
+      setTimeout(() => {
+        setSubmitted(false);
+      }, 3000);
+    } catch (err) {
+      setError("Failed to submit appointment. Please try again.");
+      console.error("Submission error:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (
@@ -207,15 +240,20 @@ const AppointmentSection = () => {
               {/* Submit */}
               <motion.button
                 type="submit"
-                className="w-full btn-primary text-lg flex items-center justify-center gap-2"
+                className="w-full btn-primary text-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                disabled={submitted}
+                disabled={submitted || loading}
               >
                 {submitted ? (
                   <>
                     <CheckCircle size={20} />
                     Appointment Requested!
+                  </>
+                ) : loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    Submitting...
                   </>
                 ) : (
                   <>
@@ -224,6 +262,18 @@ const AppointmentSection = () => {
                   </>
                 )}
               </motion.button>
+
+              {/* Error Message */}
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center gap-2 p-4 bg-destructive/10 border border-destructive text-destructive rounded-xl"
+                >
+                  <AlertCircle size={18} className="flex-shrink-0" />
+                  <span className="text-sm">{error}</span>
+                </motion.div>
+              )}
             </form>
           </motion.div>
         </div>
