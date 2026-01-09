@@ -68,13 +68,24 @@ function validateFormData(data: AppointmentData): { valid: boolean; error?: stri
 async function getGoogleSheetsClient() {
   try {
     // Parse credentials from environment variable
-    const credentialsJson = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
-    
+    let credentialsJson = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+
     if (!credentialsJson) {
       throw new Error("GOOGLE_SERVICE_ACCOUNT_KEY environment variable not set");
     }
 
-    const credentials = JSON.parse(credentialsJson);
+    // Some providers store newlines as literal "\\n" sequences. Normalize both formats.
+    if (typeof credentialsJson === "string") {
+      credentialsJson = credentialsJson.replace(/\\\\n/g, "\\n");
+    }
+
+    let credentials;
+    try {
+      credentials = JSON.parse(credentialsJson);
+    } catch (err) {
+      console.error("Failed to JSON.parse GOOGLE_SERVICE_ACCOUNT_KEY:", err);
+      throw new Error("Invalid GOOGLE_SERVICE_ACCOUNT_KEY JSON");
+    }
 
     if (!credentials.type || credentials.type !== "service_account") {
       throw new Error("Invalid Google Service Account credentials");
@@ -88,7 +99,8 @@ async function getGoogleSheetsClient() {
     return google.sheets({ version: "v4", auth });
   } catch (error) {
     console.error("Failed to initialize Google Sheets client:", error);
-    throw new Error("Failed to initialize Google Sheets API");
+    // Re-throw to preserve original error message for logging in handler
+    throw error instanceof Error ? error : new Error(String(error));
   }
 }
 
