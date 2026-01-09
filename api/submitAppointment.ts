@@ -5,7 +5,7 @@ import { VercelRequest, VercelResponse } from "@vercel/node";
 const { google } = require("googleapis");
 
 const GOOGLE_SHEET_ID = "13UQuqN9mfMrjepQPyPCaN2AW6FKzh1b73k3nlhpSI7o";
-const SHEET_NAME = "Appointments"; // Change this to your sheet name
+const SHEET_NAME = "Sheet1"; // Change this to your sheet name
 
 interface AppointmentData {
   name: string;
