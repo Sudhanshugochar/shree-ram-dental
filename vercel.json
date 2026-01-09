@@ -1,7 +1,4 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "env": {
-    "GOOGLE_SERVICE_ACCOUNT_KEY": "@GOOGLE_SERVICE_ACCOUNT_KEY"
-  }
+  "outputDirectory": "dist"
 }
